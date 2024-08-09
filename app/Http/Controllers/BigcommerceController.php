@@ -6,13 +6,6 @@ use Illuminate\Http\Request;
 use App\Services\ZohoOAuthService;
 use App\Services\ZohoWorkdriveService;
 use Illuminate\Support\Facades\Storage;
-/**
- * @OA\Info(
- *     title="My API",
- *     version="1.0.0",
- *     description="This is a sample API"
- * )
- */
 
 
 class BigcommerceController extends Controller
@@ -22,6 +15,7 @@ class BigcommerceController extends Controller
      * @OA\Get(
      *     path="/api/test",
      *     summary="Test API",
+     *     tags={"Bigcommerce"},
      *     description="Returns a test message",
      *     @OA\Response(
      *         response=200,
