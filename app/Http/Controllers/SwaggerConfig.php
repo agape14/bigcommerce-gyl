@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
-/**
+ /**
  * @OA\Info(
- *     title="API Documentation",
+ *     title="G&L BigCommerce API",
  *     version="1.0.0",
- *     description="Esta es la documentación de la API para tu proyecto",
- *     @OA\Contact(
- *         email="tu-email@ejemplo.com"
- *     )
+ *     description="G&L Integration API"
  * )
  */
 class SwaggerConfig

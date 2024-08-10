@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 class ZohoWorkdriveService
 {
     private $url = "https://workdrive.zoho.com/api/v1/";
+    private $urlwdrive = "https://www.zohoapis.com/workdrive/api/v1/";
     private $upload_url = "https://upload.zoho.com/workdrive-api/v1/";
     private $zohoOAuthService;
     private $client;
@@ -75,7 +76,42 @@ class ZohoWorkdriveService
             $response = curl_exec($curl);
             $response = json_decode($response, true);
             curl_close($curl);
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('error', ['message' => $e->getMessage()]);
+            return [
+                'status' => false,
+                'message' => 'FAILURE',
+                'error' => $e->getMessage()
+            ];
+        }
+    }
 
+    public function downloadFile($file_name, $folder_code, $file_path)
+    {
+        try {
+            $full_path = $file_path;
+            $cf = new CURLFile($full_path);
+
+            $data = array(
+                'file' => $cf,
+            );
+            $token = $this->zohoOAuthService->getAccessToken()->access_token;
+
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $this->urldrive . 'files/' . $folder_code . '/files',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_HTTPHEADER => [
+                    'Authorization: Zoho-oauthtoken ' . $token,
+                ],
+            ]);
+            $response = curl_exec($curl);
+            dd($this->urldrive . 'files/' . $folder_code . '/files');
+            $response = json_decode($response, true);
+            curl_close($curl);
             return $response;
         } catch (\Exception $e) {
             Log::error('error', ['message' => $e->getMessage()]);

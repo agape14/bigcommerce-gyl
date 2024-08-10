@@ -6,8 +6,8 @@ use App\Http\Controllers\BigcommerceController;
 use App\Http\Controllers\ExcelController;
 
 
-Route::get('/test', [BigcommerceController::class, 'uploadFile2']);
-
+Route::get('/testsalida', [BigcommerceController::class, 'uploadFileCsv']);
+Route::get('/testentrada', [BigcommerceController::class, 'downloadFileExcel']);
 
 Route::post('/process-excel', [ExcelController::class, 'processExcel']);
 

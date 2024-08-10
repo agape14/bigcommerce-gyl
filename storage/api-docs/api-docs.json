@@ -1,22 +1,44 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "API Documentation",
-        "description": "Esta es la documentación de la API para tu proyecto",
-        "contact": {
-            "email": "tu-email@ejemplo.com"
-        },
+        "title": "G&L BigCommerce API",
+        "description": "G&L Integration API",
         "version": "1.0.0"
     },
     "paths": {
-        "/api/test": {
+        "/api/testsalida": {
             "get": {
-                "tags": [
-                    "Bigcommerce"
-                ],
                 "summary": "Test API",
                 "description": "Returns a test message",
-                "operationId": "0ec11bb1ab1b98ca17413cfb342c6e83",
+                "operationId": "f9321e299530a531b85ccaa2a066f5a3",
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "API test route works!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/testentrada": {
+            "get": {
+                "summary": "Test API entrada",
+                "description": "Returns a test message",
+                "operationId": "940dc183a442fdf87db1c9c150e4acbd",
                 "responses": {
                     "200": {
                         "description": "Successful response",
@@ -136,10 +158,6 @@
         }
     },
     "tags": [
-        {
-            "name": "Bigcommerce",
-            "description": "Bigcommerce"
-        },
         {
             "name": "Excel",
             "description": "Excel"
