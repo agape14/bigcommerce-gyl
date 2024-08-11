@@ -12,6 +12,12 @@ class ZohoWorkdriveService
     private $url = "https://workdrive.zoho.com/api/v1/";
     private $urlwdrive = "https://www.zohoapis.com/workdrive/api/v1/";
     private $upload_url = "https://upload.zoho.com/workdrive-api/v1/";
+    private $download_url = "https://download.zoho.com/v1/workdrive/download/";
+
+
+
+
+
     private $zohoOAuthService;
     private $client;
 
@@ -54,7 +60,6 @@ class ZohoWorkdriveService
                 'file' => $cf,
             );
             $token = $this->zohoOAuthService->getAccessToken()->access_token;
-
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
@@ -87,6 +92,7 @@ class ZohoWorkdriveService
         }
     }
 
+    /*** leer el excel */
     public function downloadFile($file_name, $folder_code, $file_path)
     {
         try {
@@ -100,7 +106,7 @@ class ZohoWorkdriveService
 
             $curl = curl_init();
             curl_setopt_array($curl, [
-                CURLOPT_URL => $this->urldrive . 'files/' . $folder_code . '/files',
+                CURLOPT_URL => $this->url .'/files/'. $folder_code .'/files',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
@@ -108,9 +114,50 @@ class ZohoWorkdriveService
                     'Authorization: Zoho-oauthtoken ' . $token,
                 ],
             ]);
+
             $response = curl_exec($curl);
-            dd($this->urldrive . 'files/' . $folder_code . '/files');
             $response = json_decode($response, true);
+           
+
+
+            foreach ($response['data'] as $element) {
+                
+                echo $element["attributes"]["display_attr_name"];
+
+                
+
+                if ($element["attributes"]["display_attr_name"] == "BIGCOMMERCE.xlsx"){
+                    $id_file = $element["id"];
+                    echo $element["attributes"]["download_url"];
+                    echo $element["attributes"]["display_attr_name"];               
+                    echo $element["attributes"]["permalink"];
+                    echo $element["attributes"]["type"];
+                    echo $element["attributes"]["extn"];
+
+                   // https://download.zoho.com/v1/workdrive/download/{resource_id}
+                    $curl = curl_init();
+                    curl_setopt_array($curl, [
+                        CURLOPT_URL => $this->download_url .'/'. $id_file,
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_FOLLOWLOCATION => true,
+                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                        CURLOPT_HTTPHEADER => [
+                            'Authorization: Zoho-oauthtoken ' . $token,
+                        ],
+                    ]);
+
+
+                    
+                }
+            }
+
+
+
+            foreach ($items as $arr_files) {
+               echo "uno";
+            }
+
+
             curl_close($curl);
             return $response;
         } catch (\Exception $e) {

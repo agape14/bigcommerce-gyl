@@ -35,7 +35,7 @@ class BigcommerceController extends Controller
     public function uploadFileCsv()
     {
       
-        $file_name = 'outputfile.pdf';   /* aqui va el archivo csv**/ 
+        $file_name = 'csvfile.pdf';   /* aqui va el archivo csv**/ 
         $file_path = storage_path('app/public/output_file/' . $file_name);
         $serviceWorkdrive = new ZohoWorkdriveService();
         $upload_file = $serviceWorkdrive->uploadFile($file_name, env('ZOHO_WORKDRIVE_FOLDER_OUTPUT_CSV'), $file_path);
@@ -80,7 +80,6 @@ class BigcommerceController extends Controller
         $file_path_to_save = storage_path('app/public/input_file/');
         $serviceWorkdrive = new ZohoWorkdriveService();
         $download_file = $serviceWorkdrive->downloadFile($file_name, env('ZOHO_WORKDRIVE_FOLDER_INPUT_XLS'), $file_path_to_save);
-        var_dump($download_file);
        /* aqui la logica para descargar el file **/
        
     }
