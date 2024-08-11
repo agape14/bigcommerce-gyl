@@ -8,6 +8,9 @@
     "paths": {
         "/api/testsalida": {
             "get": {
+                "tags": [
+                    "Bigcommerce api"
+                ],
                 "summary": "Test API",
                 "description": "Returns a test message",
                 "operationId": "f9321e299530a531b85ccaa2a066f5a3",
@@ -36,6 +39,9 @@
         },
         "/api/testentrada": {
             "get": {
+                "tags": [
+                    "Bigcommerce api"
+                ],
                 "summary": "Test API entrada",
                 "description": "Returns a test message",
                 "operationId": "940dc183a442fdf87db1c9c150e4acbd",
@@ -158,6 +164,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Bigcommerce api",
+            "description": "Bigcommerce api"
+        },
         {
             "name": "Excel",
             "description": "Excel"
