@@ -79,7 +79,10 @@ class BigcommerceController extends Controller
         $file_name = 'inputfile.pdf';   /* aqui va el archivo xls**/ 
         $file_path_to_save = storage_path('app/public/input_file/');
         $serviceWorkdrive = new ZohoWorkdriveService();
-        $download_file = $serviceWorkdrive->downloadFile($file_name, env('ZOHO_WORKDRIVE_FOLDER_INPUT_XLS'), $file_path_to_save);
+        $respuesta = $serviceWorkdrive->downloadFile($file_name, env('ZOHO_WORKDRIVE_FOLDER_INPUT_XLS'), $file_path_to_save);
+        var_dump($respuesta);
+ 
+
        /* aqui la logica para descargar el file **/
        
     }
