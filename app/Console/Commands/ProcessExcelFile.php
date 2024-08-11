@@ -14,7 +14,6 @@ use Illuminate\Support\Collection;
 class ProcessExcelFile extends Command
 {
     protected $signature = 'excel:process {path} {outputCsv} {sheet=Sheet1} {columns=540}';
-    //protected $signature = 'excel:process {path} {outputCsv} {outputTxt} {sheet=Sheet1} {columns=540}';
     protected $description = 'Process an Excel file and export the specified number of columns to a CSV file';
 
     public function __construct()
@@ -29,7 +28,6 @@ class ProcessExcelFile extends Command
         try {
             $path = $this->argument('path');
             $outputCsv = $this->argument('outputCsv');
-            //$outputTxt = $this->argument('outputTxt');
             $sheet = $this->argument('sheet');
             $columns = (int) $this->argument('columns');
 
@@ -41,13 +39,10 @@ class ProcessExcelFile extends Command
 
             // Procesar el archivo en bloques
             $csvFile = fopen($outputCsv, 'w');
-            //$txtFile = fopen($outputTxt, 'w');
 
             Excel::import(new ExcelImport($csvFile, $sheet, $columns), $path);
-            //Excel::import(new ExcelImport($csvFile, $txtFile, $sheet, $columns), $path);
 
             fclose($csvFile);
-            //fclose($txtFile);
 
             $this->info('El archivo Excel ha sido procesado y el archivo CSV se ha creado correctamente.');
         } catch (\Exception $e) {
@@ -59,27 +54,38 @@ class ProcessExcelFile extends Command
 class ExcelImport implements ToModel, WithHeadingRow, WithChunkReading, WithMultipleSheets
 {
     protected $csvFile;
-    //protected $txtFile;
     protected $sheet;
     protected $columns;
 
-    //public function __construct($csvFile, $txtFile, $sheet, $columns)
     public function __construct($csvFile, $sheet, $columns)
     {
         $this->csvFile = $csvFile;
-        //$this->txtFile = $txtFile;
         $this->sheet = $sheet;
         $this->columns = $columns;
     }
 
     public function model(array $row)
     {
-        $filteredRow = array_slice($row, 0, $this->columns);
-        // Guardar en CSV
-        fputcsv($this->csvFile, $filteredRow);
+        // Bloque 1: Columnas A hasta R (Índice 0 a 17)
+        $block1 = array_slice($row, 0, 18);
 
-        // Guardar en TXT en formato JSON
-        //fwrite($this->txtFile, json_encode($filteredRow) . PHP_EOL);
+        // Bloque 2: Columnas S hasta SX (Índice 18 a 243)
+        $block2Array = array_slice($row, 18, 226);
+        $block2 = [];
+
+        foreach ($block2Array as $key => $value) {
+            if (!empty($value)) {
+                $block2[$key] = $value;
+            }
+        }
+        $block2Json = json_encode($block2);
+
+        // Bloque 3: Desde columna SY en adelante (Índice 244 hasta $columns)
+        $block3 = array_slice($row, 244, $this->columns - 244);
+
+        // Combinar bloques y escribir en CSV
+        $combinedRow = array_merge($block1, [$block2Json], $block3);
+        fputcsv($this->csvFile, $combinedRow);
 
         return null; // Return null since we're not saving models
     }
@@ -93,7 +99,6 @@ class ExcelImport implements ToModel, WithHeadingRow, WithChunkReading, WithMult
     {
         return [
             $this->sheet => new SheetImport($this->csvFile, $this->columns),
-            //$this->sheet => new SheetImport($this->csvFile, $this->txtFile, $this->columns),
         ];
     }
 }
@@ -101,27 +106,37 @@ class ExcelImport implements ToModel, WithHeadingRow, WithChunkReading, WithMult
 class SheetImport implements ToModel, WithHeadingRow, WithChunkReading
 {
     protected $csvFile;
-    //protected $txtFile;
     protected $columns;
 
-    //public function __construct($csvFile, $txtFile, $columns)
     public function __construct($csvFile, $columns)
     {
         $this->csvFile = $csvFile;
-        //$this->txtFile = $txtFile;
         $this->columns = $columns;
     }
 
     public function model(array $row)
     {
-        $filteredRow = array_slice($row, 0, $this->columns);
-        
-        // Guardar en CSV
-        fputcsv($this->csvFile, $filteredRow);
+        // Bloque 1: Columnas A hasta R (Índice 0 a 17)
+        $block1 = array_slice($row, 0, 18);
 
-        // Guardar en TXT en formato JSON
-        //fwrite($this->txtFile, json_encode($filteredRow) . PHP_EOL);
-        
+        // Bloque 2: Columnas S hasta SX (Índice 18 a 243)
+        $block2Array = array_slice($row, 18, 226);
+        $block2 = [];
+
+        foreach ($block2Array as $key => $value) {
+            if (!empty($value)) {
+                $block2[$key] = $value;
+            }
+        }
+        $block2Json = json_encode($block2);
+
+        // Bloque 3: Desde columna SY en adelante (Índice 244 hasta $columns)
+        $block3 = array_slice($row, 244, $this->columns - 244);
+
+        // Combinar bloques y escribir en CSV
+        $combinedRow = array_merge($block1, [$block2Json], $block3);
+        fputcsv($this->csvFile, $combinedRow);
+
         return null; // Return null since we're not saving models
     }
 

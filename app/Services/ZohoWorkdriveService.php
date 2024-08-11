@@ -121,7 +121,7 @@ class ZohoWorkdriveService
                   
 
             foreach ($response['data'] as $element) {
-                if ($element["attributes"]["display_attr_name"] == "BIGCOMMERCE.xlsx"){
+                if ($element["attributes"]["display_attr_name"] == $file_name){
                     $durl=$element["attributes"]["download_url"];
                     $file_id = $element["id"];
                     try {
