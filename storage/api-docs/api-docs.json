@@ -6,14 +6,11 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/api/testsalida": {
+        "/api/uploadFile": {
             "get": {
-                "tags": [
-                    "Bigcommerce api"
-                ],
                 "summary": "Test API",
-                "description": "Returns a test message",
-                "operationId": "f9321e299530a531b85ccaa2a066f5a3",
+                "description": "Sube el Archivo",
+                "operationId": "a32c6f28ab027a50f952284a684f06cc",
                 "responses": {
                     "200": {
                         "description": "Successful response",
@@ -39,9 +36,6 @@
         },
         "/api/testentrada": {
             "get": {
-                "tags": [
-                    "Bigcommerce api"
-                ],
                 "summary": "Test API entrada",
                 "description": "Returns a test message",
                 "operationId": "940dc183a442fdf87db1c9c150e4acbd",
@@ -69,57 +63,20 @@
             }
         },
         "/api/process-excel": {
-            "post": {
-                "tags": [
-                    "Excel"
-                ],
-                "summary": "Process an Excel file and export the specified number of columns to a CSV and a TXT file",
-                "operationId": "4ea2cebd715c7060e7e634d32de4f032",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "path",
-                                    "outputCsv",
-                                    "outputTxt",
-                                    "sheet",
-                                    "columns"
-                                ],
-                                "properties": {
-                                    "path": {
-                                        "type": "string",
-                                        "example": "/ruta/al/archivo.xlsx"
-                                    },
-                                    "outputCsv": {
-                                        "type": "string",
-                                        "example": "/ruta/al/output.csv"
-                                    },
-                                    "sheet": {
-                                        "type": "string",
-                                        "example": "Sheet1"
-                                    },
-                                    "columns": {
-                                        "type": "integer",
-                                        "example": 540
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
+            "get": {
+                "summary": "Test API",
+                "description": "Procesa el Excel",
+                "operationId": "cbf5aa0a947be233d64c22d5de935515",
                 "responses": {
                     "200": {
-                        "description": "El archivo Excel ha sido procesado correctamente.",
+                        "description": "Successful response",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "El archivo Excel ha sido procesado correctamente."
+                                            "example": "API test route works!"
                                         }
                                     },
                                     "type": "object"
@@ -127,50 +84,11 @@
                             }
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Validation error message"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Error message"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                    "404": {
+                        "description": "Not Found"
                     }
                 }
             }
         }
-    },
-    "tags": [
-        {
-            "name": "Bigcommerce api",
-            "description": "Bigcommerce api"
-        },
-        {
-            "name": "Excel",
-            "description": "Excel"
-        }
-    ]
+    }
 }
