@@ -6,11 +6,11 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/api/uploadFile": {
+        "/api/uploadFileCsv": {
             "get": {
                 "summary": "Test API",
-                "description": "Sube el Archivo",
-                "operationId": "a32c6f28ab027a50f952284a684f06cc",
+                "description": "Upload CSV File to Workdrive",
+                "operationId": "a26a1f715fe52a8ba2c4884b9bf1c857",
                 "responses": {
                     "200": {
                         "description": "Successful response",
@@ -36,8 +36,8 @@
         },
         "/api/downloadFileExcel": {
             "get": {
-                "summary": "Test API entrada",
-                "description": "Returns a test message",
+                "summary": "Download Excel File from Workdrive",
+                "description": "Download Excel File from Workdrive",
                 "operationId": "f80ee47413abf94d30cba355f7afb5e0",
                 "responses": {
                     "200": {
@@ -48,7 +48,7 @@
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "API test route works!"
+                                            "example": "archivo descargado"
                                         }
                                     },
                                     "type": "object"
@@ -65,7 +65,7 @@
         "/api/process-excel": {
             "get": {
                 "summary": "Test API",
-                "description": "Procesa el Excel",
+                "description": "Process Excel file and convert to CSV format",
                 "operationId": "cbf5aa0a947be233d64c22d5de935515",
                 "responses": {
                     "200": {
