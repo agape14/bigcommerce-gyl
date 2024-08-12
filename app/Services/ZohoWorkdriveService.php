@@ -139,7 +139,8 @@ class ZohoWorkdriveService
                             if (curl_errno($curl_download)) {
                                 throw new \Exception(curl_error($curl_download));
                             }
-                            $file_path = $file_path."BIGCOMMERCE.xlsx";
+                            //$file_path = $file_path."BIGCOMMERCE.xlsx";
+                            $file_path = $file_path.$file_name;
                             curl_close($curl_download);                      
                             file_put_contents($file_path, $response_download);
                             return [

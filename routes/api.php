@@ -5,8 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BigcommerceController;
 
 
-Route::get('/testsalida', [BigcommerceController::class, 'uploadFileCsv']);
-Route::get('/testentrada', [BigcommerceController::class, 'downloadFileExcel']);
+Route::get('/uploadfilecsv', [BigcommerceController::class, 'uploadFileCsv']);
+Route::get('/descargafileexcel', [BigcommerceController::class, 'downloadFileExcel']);
 Route::get('/process-excel', [BigcommerceController::class, 'processExcelCsv']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
