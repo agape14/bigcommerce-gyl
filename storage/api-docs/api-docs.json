@@ -34,11 +34,11 @@
                 }
             }
         },
-        "/api/testentrada": {
+        "/api/downloadFileExcel": {
             "get": {
                 "summary": "Test API entrada",
                 "description": "Returns a test message",
-                "operationId": "940dc183a442fdf87db1c9c150e4acbd",
+                "operationId": "f80ee47413abf94d30cba355f7afb5e0",
                 "responses": {
                     "200": {
                         "description": "Successful response",

@@ -16,9 +16,9 @@ class BigcommerceController extends Controller
 
 /**
      * @OA\Get(
-     *     path="/api/uploadFile",
+     *     path="/api/uploadFileCsv",
      *     summary="Test API",
-     *     description="Sube el Archivo",
+     *     description="Upload CSV File to Workdrive",
      *     @OA\Response(
      *         response=200,
      *         description="Successful response",
@@ -62,7 +62,7 @@ class BigcommerceController extends Controller
      * @OA\Get(
      *     path="/api/downloadFileExcel",
      *     summary="Test API entrada",
-     *     description="Returns a test message",
+     *     description="Download Excel File from Workdrive",
      *     @OA\Response(
      *         response=200,
      *         description="Successful response",
@@ -94,7 +94,7 @@ class BigcommerceController extends Controller
      * @OA\Get(
      *     path="/api/process-excel",
      *     summary="Test API",
-     *     description="Procesa el Excel",
+     *     description="Process Excel file and convert to CSV format",
      *     @OA\Response(
      *         response=200,
      *         description="Successful response",
