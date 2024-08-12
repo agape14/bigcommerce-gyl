@@ -46,7 +46,7 @@ class BigcommerceController extends Controller
         $this->processExcelFile($inputFilePath, $outputFilePath, 'Sheet1', 540); // Asegúrate de configurar 'sheet' y 'columns' según tu necesidad
 
         // Subir el archivo CSV a Zoho WorkDrive
-        $serviceWorkdrive = new ZohoWorkdriveService();
+       /* $serviceWorkdrive = new ZohoWorkdriveService();
         $upload_file = $serviceWorkdrive->uploadFile($outputFileName, env('ZOHO_WORKDRIVE_FOLDER_OUTPUT_CSV'), $outputFilePath);
 
         if ($upload_file['status'] == 'SUCCESS') {
@@ -60,7 +60,7 @@ class BigcommerceController extends Controller
                     // Aquí puedes manejar el enlace compartido
                 }
             }
-        }
+        }*/
     }
 
     private function processExcelFile($inputPath, $outputPath, $sheet, $columns)
