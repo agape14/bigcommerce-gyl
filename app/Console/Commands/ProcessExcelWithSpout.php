@@ -35,11 +35,60 @@ class ProcessExcelWithSpout extends Command
 
         $sheet = $sheetIterator->current();
 
+        // Obtener el iterador de filas
+        $rowIterator = $sheet->getRowIterator();
+
+        // Verificar si hay al menos una fila
+        if (!$rowIterator->valid()) {
+            $this->error('No se encontró ninguna fila en la hoja.');
+            $reader->close();
+            return;
+        }
+
+        // Intentar leer la primera fila (cabeceras)
+        $headerRow = $rowIterator->current();
+        $this->info('Verificando la primera fila (cabeceras)');
+
+        if ($headerRow === null) {
+            $this->error('La primera fila (cabeceras) es nula.');
+            $reader->close();
+            return;
+        }
+
+        $headers = $headerRow->getCells();
+        if ($headers === null) {
+            $this->error('No se pudieron obtener las celdas de la primera fila.');
+            $reader->close();
+            return;
+        }
+
+        $headerData = [];
+        foreach ($headers as $cell) {
+            $headerData[] = $cell->getValue();
+        }
+
+        // Verificar si se obtuvieron cabeceras válidas
+        if (empty($headerData)) {
+            $this->error('La primera fila (cabeceras) está vacía.');
+            $reader->close();
+            return;
+        }
+
+        $this->info('Cabeceras leídas: ' . implode(', ', $headerData));
+
+        // Avanzar el iterador para eliminar la primera fila (cabeceras)
+        $rowIterator->next();
+
         // Crear un escritor para el archivo CSV
         $writer = WriterEntityFactory::createCSVWriter();
         $writer->openToFile($outputCsv);
 
-        foreach ($sheet->getRowIterator() as $row) {
+        // Iterar sobre las filas restantes
+        foreach ($rowIterator as $row) {
+            if ($row === null) {
+                continue; // Saltar filas nulas
+            }
+
             $cells = $row->getCells();
             $rowData = [];
 
@@ -57,7 +106,7 @@ class ProcessExcelWithSpout extends Command
 
             foreach ($block2Array as $key => $value) {
                 if (!empty($value)) {
-                    $block2[$key] = $value;
+                    $block2[$headerData[$key + 18]] = $value;
                 }
             }
             $block2Json = json_encode($block2, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -66,7 +115,7 @@ class ProcessExcelWithSpout extends Command
             $block3 = array_slice($rowData, 244);
 
             // Combinar bloques y escribir en CSV
-            $combinedRow = array_merge($block1, $block3, [$block2Json]);
+            $combinedRow = array_merge($block1, [$block2Json], $block3);
             $writer->addRow(WriterEntityFactory::createRowFromArray($combinedRow));
         }
 
