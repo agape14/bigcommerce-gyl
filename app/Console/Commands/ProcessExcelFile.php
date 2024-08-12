@@ -8,7 +8,7 @@ use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 
 class ProcessExcelWithSpout extends Command
 {
-    protected $signature = 'excel:processspout:spout {path} {outputCsv}';
+    protected $signature = 'excel:process {path} {outputCsv}';
     protected $description = 'Process Excel to CSV with Spout';
 
     public function handle()
@@ -52,7 +52,7 @@ class ProcessExcelWithSpout extends Command
             $block1 = array_slice($rowData, 0, 18);
 
             // Bloque 2: Columnas S hasta SX (Índice 18 a 243)
-            $block2Array = array_slice($rowData, 18, 226);
+            $block2Array = array_slice($rowData, 19, 518);
             $block2 = [];
 
             foreach ($block2Array as $key => $value) {
@@ -63,7 +63,7 @@ class ProcessExcelWithSpout extends Command
             $block2Json = json_encode($block2, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
             // Bloque 3: Desde columna SY en adelante (Índice 244 hasta el total de columnas)
-            $block3 = array_slice($rowData, 244);
+            $block3 = array_slice($rowData, 519,540);
 
             // Combinar bloques y escribir en CSV
             $combinedRow = array_merge($block1, $block3, [$block2Json]);

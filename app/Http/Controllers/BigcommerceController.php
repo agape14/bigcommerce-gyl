@@ -36,38 +36,38 @@ class BigcommerceController extends Controller
      public function uploadFileCsv()
      {
        
-        $file_name = 'testsubidacsv.csv';   /* nombre archivo csv**/ 
-        $file_path = storage_path('app/public/output_file/' . $file_name);
-        $serviceWorkdrive = new ZohoWorkdriveService();
-        $upload_file = $serviceWorkdrive->uploadFile($file_name, env('ZOHO_WORKDRIVE_FOLDER_OUTPUT_CSV'), $file_path);
-        if ($upload_file['status'] == 'SUCCESS') {
-                        $resource_id = $upload_file['data'][0]['attributes']['resource_id'];
-                        $share_file = $serviceWorkdrive->createExternaLinks($resource_id, $file_name);
-
-                        if (!empty($share_file->data)) {
-                            if (!empty($share_file->data->attributes)) {
-                                $attributes = $share_file->data->attributes;
-                                $link = $attributes->link;
-
-
-                            }
-                        }
-                   //return ResponseHelper::error($th->getMessage(), 400);
-
-        }
+         // Rutas y nombres de archivos
+         $inputFilePath = storage_path('app/public/input_file/BIGCOMMERCE.xlsx');
+        
+         // Subir el archivo CSV a Zoho WorkDrive
+         $serviceWorkdrive = new ZohoWorkdriveService();
+         $upload_file = $serviceWorkdrive->uploadFile($outputFileName, env('ZOHO_WORKDRIVE_FOLDER_OUTPUT_CSV'), $outputFilePath);
+ 
+         if ($upload_file['status'] == 'SUCCESS') {
+             $resource_id = $upload_file['data'][0]['attributes']['resource_id'];
+             $share_file = $serviceWorkdrive->createExternaLinks($resource_id, $outputFileName);
+ 
+             if (!empty($share_file->data)) {
+                 if (!empty($share_file->data->attributes)) {
+                     $attributes = $share_file->data->attributes;
+                     $link = $attributes->link;
+                     // Aquí puedes manejar el enlace compartido
+                 }
+             }
+         }
      }
 
     
     /**
      * @OA\Get(
      *     path="/api/downloadFileExcel",
-     *     summary="Download Excel File from Workdrive",
+     *     summary="Test API entrada",
      *     description="Download Excel File from Workdrive",
      *     @OA\Response(
      *         response=200,
      *         description="Successful response",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="archivo descargado")
+     *             @OA\Property(property="message", type="string", example="API test route works!")
      *         )
      *     ),
      *     @OA\Response(
@@ -78,12 +78,15 @@ class BigcommerceController extends Controller
      */
     public function downloadFileExcel()
     {
-        //$file_name = 'BIGCOMMERCE.xlsx'; //archivo a descargar
-        $file_name = 'testbajada.xlsx'; //nombre archivo xls
+        $file_name = 'BIGCOMMERCE.xlsx'; // Aquí debes especificar el archivo XLSX
         $file_path_to_save = storage_path('app/public/input_file/');
         $serviceWorkdrive = new ZohoWorkdriveService();
         $respuesta = $serviceWorkdrive->downloadFile($file_name, env('ZOHO_WORKDRIVE_FOLDER_INPUT_XLS'), $file_path_to_save);
+        var_dump($respuesta);
  
+
+       /* aqui la logica para descargar el file **/
+       
     }
 
 
@@ -111,13 +114,13 @@ class BigcommerceController extends Controller
        
          // Rutas y nombres de archivos
          $inputFilePath = storage_path('app/public/input_file/BIGCOMMERCE.xlsx');
-         $outputFileName = 'outputcvs.csv';
+         $outputFileName = 'outputcvsfinal.csv';
          $outputFilePath = storage_path('app/public/output_file/' . $outputFileName);
          // Procesar el archivo Excel antes de subirlo
-         $this->processExcelFile($inputFilePath, $outputFilePath, 'Sheet1', 540); 
+         $this->processExcelFile($inputFilePath, $outputFilePath); 
      }
  
-     private function processExcelFile($inputPath, $outputPath, $sheet, $columns)
+     private function processExcelFile($inputPath, $outputPath)
      {
          // Crear un buffer para capturar la salida del comando
          $buffer = new BufferedOutput();
@@ -126,8 +129,6 @@ class BigcommerceController extends Controller
          $exitCode = Artisan::call('excel:process', [
              'path' => $inputPath,
              'outputCsv' => $outputPath,
-             'sheet' => $sheet,
-             'columns' => $columns,
          ], $buffer);
  
          if ($exitCode !== 0) {
