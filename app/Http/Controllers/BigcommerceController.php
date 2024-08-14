@@ -111,29 +111,63 @@ class BigcommerceController extends Controller
 
      public function processExcelCsv()
      {
-       
-         // Rutas y nombres de archivos
-         $inputFilePath = storage_path('app/public/input_file/BIGCOMMERCE.xlsx');
-         $outputFileName = 'outputcvsfinal.csv';
-         $outputFilePath = storage_path('app/public/output_file/' . $outputFileName);
-         // Procesar el archivo Excel antes de subirlo
-         $this->processExcelFile($inputFilePath, $outputFilePath); 
+        try {
+            // Rutas y nombres de archivos
+            $inputFilePath = storage_path('app/public/input_file/BIGCOMMERCE.xlsx');
+            $outputFileName = 'BIGCOMME_11.csv';
+            $outputFilePath = storage_path('app/public/output_file/' . $outputFileName);
+    
+            // Capturar tiempo de inicio
+            $startTime = now();
+    
+            // Procesar el archivo Excel antes de subirlo
+            $this->processExcelFile($inputFilePath, $outputFilePath, $startTime);
+    
+            // Capturar tiempo de finalización
+            $endTime = now();
+            $duration = $startTime->diffInMinutes($endTime);
+    
+            // Retornar respuesta JSON con estado 200 y detalles del procesamiento
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Archivo procesado correctamente.',
+                'start_time' => $startTime->toDateTimeString(),
+                'end_time' => $endTime->toDateTimeString(),
+                'duration_minutes' => $duration
+            ], 200);
+        } catch (\Exception $e) {
+            // Capturar tiempo de finalización en caso de error
+            $endTime = now();
+            $duration = $startTime->diffInMinutes($endTime);
+    
+            // Retornar respuesta JSON con estado 500 y detalles del error
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'start_time' => $startTime->toDateTimeString(),
+                'end_time' => $endTime->toDateTimeString(),
+                'duration_minutes' => $duration
+            ], 500);
+        }
      }
  
-     private function processExcelFile($inputPath, $outputPath)
+     private function processExcelFile($inputPath, $outputPath, $startTime)
      {
-         // Crear un buffer para capturar la salida del comando
-         $buffer = new BufferedOutput();
- 
-         // Ejecutar el comando Artisan para procesar el archivo Excel
-         $exitCode = Artisan::call('excel:process', [
-             'path' => $inputPath,
-             'outputCsv' => $outputPath,
-         ], $buffer);
- 
-         if ($exitCode !== 0) {
-             throw new \Exception('Hubo un problema al procesar el archivo Excel.');
-         }
+        // Crear un buffer para capturar la salida del comando
+        $buffer = new BufferedOutput();
+
+        // Ejecutar el comando Artisan para procesar el archivo Excel
+        $exitCode = Artisan::call('excel:processspout:spout', [
+            'path' => $inputPath,
+            'outputCsv' => $outputPath,
+        ], $buffer);
+
+        if ($exitCode !== 0) {
+            throw new \Exception('Hubo un problema al procesar el archivo Excel.');
+        }
+
+        // Mostrar la salida del comando en los logs (opcional)
+        \Log::info($buffer->fetch());
      }
 
 

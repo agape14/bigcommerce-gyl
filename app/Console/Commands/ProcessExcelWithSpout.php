@@ -19,8 +19,17 @@ class ProcessExcelWithSpout extends Command
         $path = $this->argument('path');
         $outputCsv = $this->argument('outputCsv');
 
+        // Establecer una carpeta temporal personalizada en tu proyecto
+        $customTempFolder = storage_path('app/temp');
+
+        // Crear la carpeta si no existe
+        if (!file_exists($customTempFolder)) {
+            mkdir($customTempFolder, 0777, true);
+        }
+
         // Crear un lector para el archivo Excel
         $reader = ReaderEntityFactory::createXLSXReader();
+        $reader->setTempFolder($customTempFolder);
         $reader->open($path);
 
         // Verificar si hay hojas disponibles
@@ -33,60 +42,23 @@ class ProcessExcelWithSpout extends Command
             return;
         }
 
-        $sheet = $sheetIterator->current();
-
-        // Obtener el iterador de filas
-        $rowIterator = $sheet->getRowIterator();
-
-        // Verificar si hay al menos una fila
-        if (!$rowIterator->valid()) {
-            $this->error('No se encontró ninguna fila en la hoja.');
-            $reader->close();
-            return;
-        }
-
-        // Intentar leer la primera fila (cabeceras)
-        $headerRow = $rowIterator->current();
-        $this->info('Verificando la primera fila (cabeceras)');
-
-        if ($headerRow === null) {
-            $this->error('La primera fila (cabeceras) es nula.');
-            $reader->close();
-            return;
-        }
-
-        $headers = $headerRow->getCells();
-        if ($headers === null) {
-            $this->error('No se pudieron obtener las celdas de la primera fila.');
-            $reader->close();
-            return;
-        }
-
-        $headerData = [];
-        foreach ($headers as $cell) {
-            $headerData[] = $cell->getValue();
-        }
-
-        // Verificar si se obtuvieron cabeceras válidas
-        if (empty($headerData)) {
-            $this->error('La primera fila (cabeceras) está vacía.');
-            $reader->close();
-            return;
-        }
-
-        $this->info('Cabeceras leídas: ' . implode(', ', $headerData));
-
-        // Avanzar el iterador para eliminar la primera fila (cabeceras)
-        $rowIterator->next();
+        $firstSheet = $sheetIterator->current();  // Obtener la primera hoja
+        $rowIterator = $firstSheet->getRowIterator();
 
         // Crear un escritor para el archivo CSV
         $writer = WriterEntityFactory::createCSVWriter();
         $writer->openToFile($outputCsv);
 
-        // Iterar sobre las filas restantes
+        // Inicializar un contador de filas
+        $rowCounter = 0;
+
+        // Iterar sobre las filas del archivo Excel
         foreach ($rowIterator as $row) {
-            if ($row === null) {
-                continue; // Saltar filas nulas
+            $rowCounter++;
+
+            // Saltar la primera fila (cabecera)
+            if ($rowCounter == 1) {
+                continue;
             }
 
             $cells = $row->getCells();
@@ -100,30 +72,45 @@ class ProcessExcelWithSpout extends Command
             // Separar en bloques
             $block1 = array_slice($rowData, 0, 18);
 
-            // Bloque 2: Columnas S hasta SX (Índice 18 a 243)
-            $block2Array = array_slice($rowData, 18, 226);
+            // Bloque 2: Columnas S hasta SX (Índice 19 a 518)
+            $block2Array = array_slice($rowData, 19, 518);
             $block2 = [];
 
             foreach ($block2Array as $key => $value) {
                 if (!empty($value)) {
-                    $block2[$headerData[$key + 18]] = $value;
+                    $block2[$key] = $value;
                 }
             }
             $block2Json = json_encode($block2, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-            // Bloque 3: Desde columna SY en adelante (Índice 244 hasta el total de columnas)
-            $block3 = array_slice($rowData, 244);
+            // Bloque 3: Desde columna SY en adelante (Índice 519 hasta el total de columnas)
+            $block3 = array_slice($rowData, 519, 540);
 
             // Combinar bloques y escribir en CSV
-            $combinedRow = array_merge($block1, [$block2Json], $block3);
+            $combinedRow = array_merge($block1, $block3, [$block2Json]);
             $writer->addRow(WriterEntityFactory::createRowFromArray($combinedRow));
         }
 
+        // Cerrar los recursos
         $reader->close();
         $writer->close();
+
+        // Limpia la carpeta temporal después de finalizar el procesamiento
+        $this->cleanupTempFolder($customTempFolder);
 
         $endTime = now();
         $this->info('Proceso finalizado: ' . $endTime);
         $this->info('Duración total: ' . $startTime->diffInMinutes($endTime) . ' minutos');
+    }
+
+    private function cleanupTempFolder($folderPath)
+    {
+        // Eliminar archivos temporales
+        if (is_dir($folderPath)) {
+            foreach (glob($folderPath . '/*') as $file) {
+                unlink($file);
+            }
+            rmdir($folderPath);
+        }
     }
 }

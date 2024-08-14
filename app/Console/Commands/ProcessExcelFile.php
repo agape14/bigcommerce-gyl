@@ -3,78 +3,86 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
-use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-class ProcessExcelWithSpout extends Command
+class ProcessExcelFile extends Command
 {
     protected $signature = 'excel:process {path} {outputCsv}';
-    protected $description = 'Process Excel to CSV with Spout';
+    protected $description = 'Process an Excel file and export the specified columns to a CSV file';
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
     public function handle()
     {
-        $startTime = now();
-        $this->info('Proceso iniciado: ' . $startTime);
+        ini_set('memory_limit', '2G'); // Aumenta el límite de memoria
 
-        $path = $this->argument('path');
-        $outputCsv = $this->argument('outputCsv');
+        try {
+            $startTime = now();
+            $this->info("Proceso iniciado a las: " . $startTime);
 
-        // Crear un lector para el archivo Excel
-        $reader = ReaderEntityFactory::createXLSXReader();
-        $reader->open($path);
+            $path = $this->argument('path');
+            $outputCsv = $this->argument('outputCsv');
 
-        // Verificar si hay hojas disponibles
-        $sheetIterator = $reader->getSheetIterator();
-        $sheetIterator->rewind(); // Asegura que el iterador esté en la primera hoja
-
-        if (!$sheetIterator->valid()) {
-            $this->error('No se encontró ninguna hoja en el archivo Excel.');
-            $reader->close();
-            return;
-        }
-
-        $sheet = $sheetIterator->current();
-
-        // Crear un escritor para el archivo CSV
-        $writer = WriterEntityFactory::createCSVWriter();
-        $writer->openToFile($outputCsv);
-
-        foreach ($sheet->getRowIterator() as $row) {
-            $cells = $row->getCells();
-            $rowData = [];
-
-            // Extraer los valores de las celdas
-            foreach ($cells as $cell) {
-                $rowData[] = $cell->getValue();
+            // Verificar si el archivo existe
+            if (!file_exists($path)) {
+                $this->error("El archivo de entrada no existe en la ruta proporcionada.");
+                return;
             }
 
-            // Separar en bloques
-            $block1 = array_slice($rowData, 0, 18);
+            // Abrir archivo CSV para escritura
+            $csvFile = fopen($outputCsv, 'w');
 
-            // Bloque 2: Columnas S hasta SX (Índice 18 a 243)
-            $block2Array = array_slice($rowData, 19, 518);
-            $block2 = [];
+            // Procesar el archivo Excel en bloques
+            Excel::import(new class($csvFile) implements ToModel, WithHeadingRow, WithChunkReading {
+                protected $csvFile;
 
-            foreach ($block2Array as $key => $value) {
-                if (!empty($value)) {
-                    $block2[$key] = $value;
+                public function __construct($csvFile)
+                {
+                    $this->csvFile = $csvFile;
                 }
-            }
-            $block2Json = json_encode($block2, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-            // Bloque 3: Desde columna SY en adelante (Índice 244 hasta el total de columnas)
-            $block3 = array_slice($rowData, 519,540);
+                public function model(array $row)
+                {
+                    $block1 = array_slice($row, 0, 18);
+                    $block2Array = array_slice($row, 19, 518);
+                    $block2 = [];
 
-            // Combinar bloques y escribir en CSV
-            $combinedRow = array_merge($block1, $block3, [$block2Json]);
-            $writer->addRow(WriterEntityFactory::createRowFromArray($combinedRow));
+                    foreach ($block2Array as $key => $value) {
+                        if (!empty($value)) {
+                            $block2[$key] = $value;
+                        }
+                    }
+                    $block2Json = json_encode($block2, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    $block3 = array_slice($row, 519,540);
+
+                    $combinedRow = array_merge($block1, $block3, [$block2Json]);
+                    fputcsv($this->csvFile, $combinedRow);
+                }
+
+                public function chunkSize(): int
+                {
+                    return 1000; // Procesar 1000 filas a la vez
+                }
+            }, $path);
+
+            fclose($csvFile);
+
+            $endTime = now();
+            $this->info('El archivo Excel ha sido procesado y el archivo CSV se ha creado correctamente.');
+            $this->info("Proceso finalizado a las: " . $endTime);
+
+            $duration = $endTime->diffInSeconds($startTime);
+            $this->info("Tiempo total de ejecución: " . gmdate("H:i:s", $duration));
+
+        } catch (\Exception $e) {
+            $this->error("Error: " . $e->getMessage());
         }
-
-        $reader->close();
-        $writer->close();
-
-        $endTime = now();
-        $this->info('Proceso finalizado: ' . $endTime);
-        $this->info('Duración total: ' . $startTime->diffInMinutes($endTime) . ' minutos');
     }
 }

@@ -36,7 +36,7 @@
         },
         "/api/downloadFileExcel": {
             "get": {
-                "summary": "Download Excel File from Workdrive",
+                "summary": "Test API entrada",
                 "description": "Download Excel File from Workdrive",
                 "operationId": "f80ee47413abf94d30cba355f7afb5e0",
                 "responses": {
@@ -48,7 +48,7 @@
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "archivo descargado"
+                                            "example": "API test route works!"
                                         }
                                     },
                                     "type": "object"
