@@ -54,6 +54,7 @@ class ProcessExcelWithSpout extends Command
 
         $rowCounter = 0;
         $headerRow = [];
+        $headerjson = [];
         $jsonHeader = 'Attributes_JSON'; // Nueva cabecera para el campo JSON
         
         // Iterar sobre las filas del archivo Excel
@@ -70,9 +71,14 @@ class ProcessExcelWithSpout extends Command
     
                 // Obtener la primera fila como cabecera
                 if ($rowCounter == 1) {
-                    $headerRow = $rowData;
-                    // Añadir la nueva cabecera para el JSON al final
-                    $headerRow[] = $jsonHeader;
+                    $headerjson = $rowData;
+                    // Solo tomar las cabeceras de $block1 y $block3, agregar la cabecera JSON
+                    $headerRow = array_merge(
+                        array_slice($rowData, 0, 18),  // Primeras 18 columnas (block1)
+                        array_slice($rowData, 519, 540), // Desde la columna 519 a la 540 (block3)
+                        [$jsonHeader] // Cabecera del campo JSON
+                    );
+
                     // Escribir las cabeceras en el archivo CSV
                     $writer->addRow(WriterEntityFactory::createRowFromArray($headerRow));
                     continue;
@@ -86,7 +92,7 @@ class ProcessExcelWithSpout extends Command
                 $block2 = [];
     
                 // Usar las cabeceras correspondientes para el bloque 2
-                $block2Headers = array_slice($headerRow, 19, 518);
+                $block2Headers = array_slice($headerjson, 19, 518);
                 foreach ($block2Array as $key => $value) {
                     if (!empty($value)) {
                         $block2[$block2Headers[$key]] = $value; // Asignar nombre de cabecera a cada valor
