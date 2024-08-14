@@ -52,43 +52,59 @@ class ProcessExcelWithSpout extends Command
         // Inicializar un contador de filas
         $rowCounter = 0;
 
+        $rowCounter = 0;
+        $headerRow = [];
+        $jsonHeader = 'Attributes_JSON'; // Nueva cabecera para el campo JSON
+        
         // Iterar sobre las filas del archivo Excel
-        foreach ($rowIterator as $row) {
-            $rowCounter++;
-
-            // Saltar la primera fila (cabecera)
-            if ($rowCounter == 1) {
-                continue;
-            }
-
-            $cells = $row->getCells();
-            $rowData = [];
-
-            // Extraer los valores de las celdas
-            foreach ($cells as $cell) {
-                $rowData[] = $cell->getValue();
-            }
-
-            // Separar en bloques
-            $block1 = array_slice($rowData, 0, 18);
-
-            // Bloque 2: Columnas S hasta SX (Índice 19 a 518)
-            $block2Array = array_slice($rowData, 19, 518);
-            $block2 = [];
-
-            foreach ($block2Array as $key => $value) {
-                if (!empty($value)) {
-                    $block2[$key] = $value;
+        foreach ($reader->getSheetIterator() as $sheet) {
+            foreach ($sheet->getRowIterator() as $row) {
+                $rowCounter++;
+                $cells = $row->getCells();
+                $rowData = [];
+    
+                // Extraer los valores de las celdas
+                foreach ($cells as $cell) {
+                    $rowData[] = $cell->getValue();
                 }
+    
+                // Obtener la primera fila como cabecera
+                if ($rowCounter == 1) {
+                    $headerRow = $rowData;
+                    // Añadir la nueva cabecera para el JSON al final
+                    $headerRow[] = $jsonHeader;
+                    // Escribir las cabeceras en el archivo CSV
+                    $writer->addRow(WriterEntityFactory::createRowFromArray($headerRow));
+                    continue;
+                }
+    
+                // Separar en bloques
+                $block1 = array_slice($rowData, 0, 18);
+    
+                // Bloque 2: Columnas S hasta SX (Índice 19 a 518)
+                $block2Array = array_slice($rowData, 19, 518);
+                $block2 = [];
+    
+                // Usar las cabeceras correspondientes para el bloque 2
+                $block2Headers = array_slice($headerRow, 19, 518);
+                foreach ($block2Array as $key => $value) {
+                    if (!empty($value)) {
+                        $block2[$block2Headers[$key]] = $value; // Asignar nombre de cabecera a cada valor
+                    }
+                }
+    
+                // Convertir el bloque 2 a JSON
+                $block2Json = json_encode($block2, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    
+                // Bloque 3: Desde columna SY en adelante (Índice 519 hasta el total de columnas)
+                $block3 = array_slice($rowData, 519, 540);
+    
+                // Combinar bloques y añadir el bloque JSON al final
+                $combinedRow = array_merge($block1, $block3, [$block2Json]);
+    
+                // Escribir la fila combinada en el archivo CSV
+                $writer->addRow(WriterEntityFactory::createRowFromArray($combinedRow));
             }
-            $block2Json = json_encode($block2, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-            // Bloque 3: Desde columna SY en adelante (Índice 519 hasta el total de columnas)
-            $block3 = array_slice($rowData, 519, 540);
-
-            // Combinar bloques y escribir en CSV
-            $combinedRow = array_merge($block1, $block3, [$block2Json]);
-            $writer->addRow(WriterEntityFactory::createRowFromArray($combinedRow));
         }
 
         // Cerrar los recursos
