@@ -167,6 +167,102 @@ class ZohoWorkdriveService
         }
     }
 
+    public function downloadFilev2($file_name, $folder_code, $file_path)
+    {
+        try {
+            $token = $this->zohoOAuthService->getAccessToken()->access_token;
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $this->url . '/files/' . $folder_code . '/files',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_HTTPHEADER => [
+                    'Authorization: Zoho-oauthtoken ' . $token,
+                ],
+            ]);
+            $response = curl_exec($curl);
+            curl_close($curl);
+
+            if (!$response) {
+                throw new \Exception("No response from Zoho API.");
+            }
+
+            $response = json_decode($response, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception("Error decoding JSON response: " . json_last_error_msg());
+            }
+
+            foreach ($response['data'] as $element) {
+                if ($element["attributes"]["display_attr_name"] === $file_name) {
+                    $durl = $element["attributes"]["download_url"];
+                    $file_id = $element["id"];
+
+                    try {
+                        $curl_download = curl_init();
+                        curl_setopt_array($curl_download, [
+                            CURLOPT_URL => $durl,
+                            CURLOPT_RETURNTRANSFER => true,
+                            CURLOPT_FOLLOWLOCATION => true,
+                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                            CURLOPT_HTTPHEADER => [
+                                'Authorization: Zoho-oauthtoken ' . $token,
+                            ],
+                        ]);
+
+                        $response_download = curl_exec($curl_download);
+
+                        if (curl_errno($curl_download)) {
+                            throw new \Exception(curl_error($curl_download));
+                        }
+
+                        curl_close($curl_download);
+
+                        if (!$response_download || strlen($response_download) < 1024) {
+                            // Si el tamaño del archivo es menor a 1KB, probablemente está corrupto o vacío
+                            throw new \Exception("El archivo descargado es demasiado pequeño o está vacío.");
+                        }
+
+                        $file_full_path = $file_path . $file_name;
+                        file_put_contents($file_full_path, $response_download);
+
+                        // Verifica el tamaño del archivo guardado en disco
+                        if (file_exists($file_full_path) && filesize($file_full_path) < 1024) {
+                            throw new \Exception("El archivo descargado es demasiado pequeño o está corrupto.");
+                        }
+
+                        return [
+                            'status' => true,
+                            'message' => 'File downloaded and saved successfully',
+                            'file_path' => $file_full_path,
+                        ];
+
+                    } catch (\Exception $e) {
+                        return [
+                            'status' => false,
+                            'message' => 'Error during file download',
+                            'error' => $e->getMessage(),
+                        ];
+                    }
+                }
+            }
+
+            // Si el archivo no se encuentra en la lista
+            return [
+                'status' => false,
+                'message' => 'Archivo no encontrado en Zoho WorkDrive.',
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'status' => false,
+                'message' => 'FAILURE',
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+
     public function createExternaLinks($resource_id, $link_name)
     {
         try {

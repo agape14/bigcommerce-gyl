@@ -8,6 +8,9 @@
     "paths": {
         "/api/uploadFileCsv": {
             "get": {
+                "tags": [
+                    "Bigcommerce"
+                ],
                 "summary": "Test API",
                 "description": "Upload CSV File to Workdrive",
                 "operationId": "a26a1f715fe52a8ba2c4884b9bf1c857",
@@ -36,6 +39,9 @@
         },
         "/api/downloadFileExcel": {
             "get": {
+                "tags": [
+                    "Bigcommerce"
+                ],
                 "summary": "Test API entrada",
                 "description": "Download Excel File from Workdrive",
                 "operationId": "f80ee47413abf94d30cba355f7afb5e0",
@@ -64,6 +70,9 @@
         },
         "/api/process-excel": {
             "get": {
+                "tags": [
+                    "Bigcommerce"
+                ],
                 "summary": "Test API",
                 "description": "Process Excel file and convert to CSV format",
                 "operationId": "cbf5aa0a947be233d64c22d5de935515",
@@ -89,6 +98,47 @@
                     }
                 }
             }
+        },
+        "/api/process-bigcommerce": {
+            "get": {
+                "tags": [
+                    "Bigcommerce"
+                ],
+                "summary": "Process Bigcommerce",
+                "description": "Inicia el proceso de Bigcommerce y retorna un mensaje de éxito.",
+                "operationId": "processBigcommerce",
+                "responses": {
+                    "200": {
+                        "description": "Operación exitosa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Archivo procesado y subido correctamente."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud incorrecta"
+                    }
+                }
+            }
         }
-    }
+    },
+    "tags": [
+        {
+            "name": "Bigcommerce",
+            "description": "Bigcommerce"
+        }
+    ]
 }
