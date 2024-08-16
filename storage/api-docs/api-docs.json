@@ -37,14 +37,45 @@
                 }
             }
         },
-        "/api/downloadFileExcel": {
+        "/api/descargafileexcel": {
             "get": {
                 "tags": [
                     "Bigcommerce"
                 ],
                 "summary": "Test API entrada",
                 "description": "Download Excel File from Workdrive",
-                "operationId": "f80ee47413abf94d30cba355f7afb5e0",
+                "operationId": "b9f08847ec53b0f2ec59f1476c6ea73b",
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "API test route works!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/downloadexcel": {
+            "get": {
+                "tags": [
+                    "Bigcommerce"
+                ],
+                "summary": "Test API entrada",
+                "description": "Download Excel File from Workdrive",
+                "operationId": "04b577194f957fedfe3f8cb5933e40ac",
                 "responses": {
                     "200": {
                         "description": "Successful response",

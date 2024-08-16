@@ -32,43 +32,36 @@ class ProcessExcelWithSpout extends Command
         $reader->setTempFolder($customTempFolder);
         $reader->open($path);
 
-        // Verificar si hay hojas disponibles
+        // Solo procesar la primera hoja (Sheet1)
         $sheetIterator = $reader->getSheetIterator();
-        $sheetIterator->rewind(); // Asegura que el iterador esté en la primera hoja
+        $sheetIterator->rewind(); // Mueve el iterador al inicio, primera hoja
 
-        if (!$sheetIterator->valid()) {
-            $this->error('No se encontró ninguna hoja en el archivo Excel.');
-            $reader->close();
-            return;
-        }
+        // Si hay hojas disponibles, procesar solo la primera
+        if ($sheetIterator->valid()) {
+            $firstSheet = $sheetIterator->current();  // Obtener la primera hoja (Sheet1)
+            $rowIterator = $firstSheet->getRowIterator();
 
-        $firstSheet = $sheetIterator->current();  // Obtener la primera hoja
-        $rowIterator = $firstSheet->getRowIterator();
+            // Crear un escritor para el archivo CSV
+            $writer = WriterEntityFactory::createCSVWriter();
+            $writer->openToFile($outputCsv);
 
-        // Crear un escritor para el archivo CSV
-        $writer = WriterEntityFactory::createCSVWriter();
-        $writer->openToFile($outputCsv);
+            // Inicializar un contador de filas
+            $rowCounter = 0;
+            $headerRow = [];
+            $headerjson = [];
+            $jsonHeader = 'Attributes_JSON'; // Nueva cabecera para el campo JSON
 
-        // Inicializar un contador de filas
-        $rowCounter = 0;
-
-        $rowCounter = 0;
-        $headerRow = [];
-        $headerjson = [];
-        $jsonHeader = 'Attributes_JSON'; // Nueva cabecera para el campo JSON
-        
-        // Iterar sobre las filas del archivo Excel
-        foreach ($reader->getSheetIterator() as $sheet) {
-            foreach ($sheet->getRowIterator() as $row) {
+            // Iterar sobre las filas de la primera hoja
+            foreach ($rowIterator as $row) {
                 $rowCounter++;
                 $cells = $row->getCells();
                 $rowData = [];
-    
+
                 // Extraer los valores de las celdas
                 foreach ($cells as $cell) {
                     $rowData[] = $cell->getValue();
                 }
-    
+
                 // Obtener la primera fila como cabecera
                 if ($rowCounter == 1) {
                     $headerjson = $rowData;
@@ -83,14 +76,14 @@ class ProcessExcelWithSpout extends Command
                     $writer->addRow(WriterEntityFactory::createRowFromArray($headerRow));
                     continue;
                 }
-    
+
                 // Separar en bloques
                 $block1 = array_slice($rowData, 0, 18);
-    
+
                 // Bloque 2: Columnas S hasta SX (Índice 19 a 518)
                 $block2Array = array_slice($rowData, 19, 518);
                 $block2 = [];
-    
+
                 // Usar las cabeceras correspondientes para el bloque 2
                 $block2Headers = array_slice($headerjson, 19, 518);
                 foreach ($block2Array as $key => $value) {
@@ -98,24 +91,26 @@ class ProcessExcelWithSpout extends Command
                         $block2[$block2Headers[$key]] = $value; // Asignar nombre de cabecera a cada valor
                     }
                 }
-    
+
                 // Convertir el bloque 2 a JSON
                 $block2Json = json_encode($block2, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    
+
                 // Bloque 3: Desde columna SY en adelante (Índice 519 hasta el total de columnas)
                 $block3 = array_slice($rowData, 519, 540);
-    
+
                 // Combinar bloques y añadir el bloque JSON al final
                 $combinedRow = array_merge($block1, $block3, [$block2Json]);
-    
+
                 // Escribir la fila combinada en el archivo CSV
                 $writer->addRow(WriterEntityFactory::createRowFromArray($combinedRow));
             }
+
+            // Cerrar los recursos
+            $writer->close();
         }
 
-        // Cerrar los recursos
+        // Cerrar el lector
         $reader->close();
-        $writer->close();
 
         // Limpia la carpeta temporal después de finalizar el procesamiento
         $this->cleanupTempFolder($customTempFolder);
@@ -127,12 +122,15 @@ class ProcessExcelWithSpout extends Command
 
     private function cleanupTempFolder($folderPath)
     {
-        // Eliminar archivos temporales
-        if (is_dir($folderPath)) {
-            foreach (glob($folderPath . '/*') as $file) {
+        // Elimina todos los archivos dentro de la carpeta temporal
+        $files = glob($folderPath . '/*');
+        foreach ($files as $file) {
+            if (is_file($file)) {
                 unlink($file);
             }
-            rmdir($folderPath);
         }
+
+        // Elimina la carpeta temporal
+        rmdir($folderPath);
     }
 }
