@@ -59,7 +59,14 @@ class ProcessExcelWithSpout extends Command
 
                 // Extraer los valores de las celdas
                 foreach ($cells as $cell) {
-                    $rowData[] = $cell->getValue();
+                    $cellValue = $cell->getValue();
+
+                    // Eliminar comillas dobles dentro de los valores de celdas
+                    if (is_string($cellValue)) {
+                        $cellValue = str_replace('"', '', $cellValue);
+                    }
+
+                    $rowData[] = $cellValue;
                 }
 
                 // Obtener la primera fila como cabecera
@@ -92,7 +99,7 @@ class ProcessExcelWithSpout extends Command
                     }
                 }
 
-                // Convertir el bloque 2 a JSON
+                // Convertir el bloque 2 a JSON sin escapar comillas innecesarias
                 $block2Json = json_encode($block2, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
                 // Bloque 3: Desde columna SY en adelante (Índice 519 hasta el total de columnas)
@@ -123,14 +130,27 @@ class ProcessExcelWithSpout extends Command
     private function cleanupTempFolder($folderPath)
     {
         // Elimina todos los archivos dentro de la carpeta temporal
-        $files = glob($folderPath . '/*');
+        $files = glob($folderPath . '/*'); // Obtener todos los archivos en la carpeta
+
         foreach ($files as $file) {
             if (is_file($file)) {
-                unlink($file);
+                try {
+                    // Intentar eliminar el archivo
+                    unlink($file);
+                } catch (\Exception $e) {
+                    // Mostrar un mensaje si no se puede eliminar el archivo
+                    $this->error("No se pudo eliminar el archivo: $file. Error: " . $e->getMessage());
+                }
             }
         }
 
-        // Elimina la carpeta temporal
-        rmdir($folderPath);
+        // Intentar eliminar la carpeta si está vacía
+        try {
+            rmdir($folderPath);
+            $this->info("Carpeta temporal eliminada: $folderPath");
+        } catch (\Exception $e) {
+            // Mostrar un mensaje si no se puede eliminar la carpeta
+            $this->error("No se pudo eliminar la carpeta: $folderPath. Error: " . $e->getMessage());
+        }
     }
 }
